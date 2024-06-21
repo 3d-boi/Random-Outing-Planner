@@ -1,27 +1,29 @@
 import  smtplib
 import os
 from dotenv import load_dotenv
-from email.mime.text import MIMEText
-
+import datetime
+#from email.mime.text import MIMEText
+# Load the local .env file to be used
 load_dotenv('.env')
 
-def send_plan(title:str, date:str, location:str):
-    subject = title
-    body = f"On {date}, I think we should go to {location}, It will be fun!"
-    sender = os.environ.get('SENDER_EMAIL')
-    recipients = os.environ.get('RECEPIENTS_EMAILS')
-    email_password = os.environ.get('EMAIL_PASSKEY')
+def send_plan(date:str, location:str, note:str):
+    # Defining some variables
+    sender_email = str(os.environ.get('SENDER_EMAIL'))
+    email_passkey = str(os.environ.get('EMAIL_PASSKEY'))
+    # Temp solution
+    recipient_emails = [str(os.environ.get('RECIPIENT_EMAILS'))]
 
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = recipients
+    # Create and start a SMTP server
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
-       smtp_server.login(sender, email_password)
-       smtp_server.sendmail(sender, recipients, msg.as_string())
-    print("Message sent!")
+    # Login to the sender's email account
+    server.login(sender_email, email_passkey)
 
-    #print(f"{title}: On {date}, we can go to {location}")
+    # Construct the message to be sent
+    msg = f"Subject: Random hangout plan\n\nGreetings,\nYou are invited to a random hagout with the members of the society,\nThe hangout will take place on {date}, at {location}, We are excited to see you there!\n\nNote: -{note}-\n\n\n The Planning Division."
 
-send_plan("Mall outing plan", "27/6", "The mall")
+    # Send email
+    server.sendmail(sender_email,recipient_emails,msg)
+    print("Mail sent!")
+
+send_plan("25/6 at 8-PM", "The School", "bring your bikes, we will race!")
