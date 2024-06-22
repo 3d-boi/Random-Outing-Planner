@@ -1,4 +1,5 @@
-import  smtplib
+import email.message
+import smtplib
 import os
 from dotenv import load_dotenv
 import datetime
@@ -34,20 +35,32 @@ def send_plan(plan:plan_template.plan):
     # Temp solution
     recipient_emails = [str(os.environ.get('RECIPIENT_EMAILS'))]
 
+    # Construct and format the message to be sent
+    formatted_date = plan.date.strftime("%A %d %b")
+    formatted_time = plan.time.strftime("%I:%M %p")
+
+    # Open and read the HTML file, and Replace placeholders with actual values
+    with open('email_template.html','r') as html_file:
+        msg = html_file.read()
+        msg = msg.replace('{date}', formatted_date)
+        msg = msg.replace('{time}', formatted_time)
+        msg = msg.replace('{location}', plan.location)
+
+    # Email data setup
+    mail = email.message.Message()
+    mail['Subject'] = "SSS Hangout Invitation"
+    mail.add_header('Content-Type','text/html')
+    mail.set_payload(msg)
+    mail_str = mail.as_string()
+    
+
     # Create and start a SMTP server
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
         # Login to the sender's email account
         server.login(sender_email, email_passkey)
-
-        # Construct and format the message to be sent
-        formatted_date = plan.date.strftime("%A %d %b")
-        formatted_time = plan.time.strftime("%I:%M %p")
-        msg = f"Subject: Random hangout plan\n\nGreetings,\nYou are invited to a random hagout with the members of the society,\nThe hangout will take place on {formatted_date}, at {formatted_time}, at '{plan.location}', We are excited to see you there!\n\nNote: -{plan.note}-\n\n\n The Secret Planning Department."
-
         # Send email
-        server.sendmail(sender_email,recipient_emails,msg)
+        server.sendmail(sender_email,recipient_emails,mail_str.encode('utf-8'))
     
-
     print("Mail sent!")
 
 generate_random_plan()
