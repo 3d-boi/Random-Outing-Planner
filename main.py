@@ -13,6 +13,17 @@ locations = ["The School", "The Garden", "The GYM"]
 # Recording the current time and date in 2 variables
 current_date = datetime.datetime.now().date()
 current_time = datetime.datetime.now().time()
+
+def check_onetime_plans():
+    with open('Flask Web App/onetime.csv', 'r') as plans_file:
+        csvfile = csv.DictReader(plans_file)
+        for event in csvfile:
+            event_date = datetime.datetime.strptime(event['date'],"%Y-%m-%d").date()
+            if(current_date >= event_date):
+                print(f'{event_date} is a past date.')
+            else:
+                print(f'{event_date} is a future date.')
+        #dict_list = list(csvfile)
  
 def generate_random_plan():
     # Access the csv files
@@ -73,3 +84,4 @@ def send_plan(plan:plan_template.plan):
     print("Mail sent!")
 
 generate_random_plan()
+#check_onetime_plans()
