@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Suggest an Outing</title>
 </head>
 <body>
     <form action="{{ url_for("suggest")}}" method="post">
@@ -17,6 +17,13 @@
         <br>
         <label>Time:</label>
         <input type="time" name="time">
+        <br>
+        <br>
+        <label>One-time Event:</label>
+        <input type="radio" name="frequency" value="False">
+        <br>
+        <label>Repeating:</label>
+        <input type="radio" name="frequency" value="True">
         <br>
         <br>
         <input type="submit">
