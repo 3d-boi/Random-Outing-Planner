@@ -6,6 +6,20 @@
     <title>Document</title>
 </head>
 <body>
-    hola
+    <form action="{{ url_for("suggest")}}" method="post">
+        <label>Location:</label>
+        <input type="text" name="location">
+        <br>
+        <br>
+        <label>Date:</label>
+        <input type="date" name="date">
+        <br>
+        <br>
+        <label>Time:</label>
+        <input type="time" name="time">
+        <br>
+        <br>
+        <input type="submit">
+    </form>
 </body>
 </html>
