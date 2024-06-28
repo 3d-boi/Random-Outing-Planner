@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-import csv
 
 app = Flask(__name__)
 
@@ -24,16 +23,17 @@ def suggest():
         location = request.form.get('location')
         date = request.form.get('date')
         time = request.form.get('time')
+        note = request.form.get('note')
         is_repeating = request.form.get('frequency')
 
         #Check id the plan is repeating or not.
         if eval(is_repeating):
             with open('Flask Web App/repeating.csv','a') as csv_repeating:
-                csv_repeating.write(f'\n{location},{date},{time}')
+                csv_repeating.write(f'\n\"{location}\",{date},{time},\"{note}\"')
             csv_repeating.close()
         else:
             with open('Flask Web App/onetime.csv','a') as csv_onetime:
-                csv_onetime.write(f'\n{location},{date},{time}')
+                csv_onetime.write(f'\n\"{location}\",{date},{time},\"{note}\"')
             csv_onetime.close()
         return render_template('suggested.html')
     return render_template('suggest.html')
