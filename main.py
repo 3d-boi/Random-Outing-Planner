@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import datetime
 import random
 import plan_template
+import csv
 
 # A Temporary list of all the locations available
 locations = ["The School", "The Garden", "The GYM"]
@@ -14,13 +15,20 @@ current_date = datetime.datetime.now().date()
 current_time = datetime.datetime.now().time()
  
 def generate_random_plan():
+    # Access the csv files
+    with open('Flask Web App/repeating.csv', 'r') as plans_file:
+        csvfile = csv.DictReader(plans_file)
+        dict_list = list(csvfile)
+    random_num = random.randint(0,len(dict_list))
+
     # Defining some needed variables
     offset_date = current_date + datetime.timedelta(days=random.randint(1,3))
     plan_time = datetime.time(random.randint(17,20),00)
-    plan_location = random.choice(locations)
+    plan_location = dict_list[random_num]['location']
+    plan_note = dict_list[random_num]['note']
 
     # creating the "plan" object
-    plan = plan_template.plan(offset_date,plan_time,plan_location,"note")
+    plan = plan_template.plan(offset_date,plan_time,plan_location,plan_note)
 
     # Sending an email with teh generated plan
     send_plan(plan)
@@ -45,6 +53,7 @@ def send_plan(plan:plan_template.plan):
         msg = msg.replace('{date}', formatted_date)
         msg = msg.replace('{time}', formatted_time)
         msg = msg.replace('{location}', plan.location)
+        msg = msg.replace('{note}', plan.note)
 
     # Email data setup
     mail = email.message.Message()
