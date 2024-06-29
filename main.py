@@ -1,20 +1,55 @@
 import email.message
 import smtplib
 import os
-from dotenv import load_dotenv
+import dotenv
 import datetime
 import random
 import plan_template
 import csv
 import csvcleaner
 
-# A Temporary list of all the locations available
-#locations = ["The School", "The Garden", "The GYM"]
-
 # Recording the current time and date in 2 variables
 current_date = datetime.datetime.now().date()
 current_time = datetime.datetime.now().time()
 min_future_date = current_date + datetime.timedelta(3)
+# Load the local .env file to be used
+dotenv.load_dotenv('.env')
+
+def vote_result():
+    #Gets the current voting score
+    yes_votes = eval(os.environ.get('YES_VOTES'))
+    no_votes = eval(os.environ.get('NO_VOTES'))
+
+    #checks if the vote is done
+    if yes_votes + no_votes >= 3:
+        if yes_votes >= 3 and yes_votes > no_votes:
+            #vote result is yes!
+            send_confirmation()
+        else:
+            #vote result is no :(
+            send_cancelation()
+            dotenv.set_key('.env','CURRENT_PLAN_DATE',str(datetime.datetime(1000,10,10,12,12,00).date()),'never')
+            is_plan_free()
+    else:
+        print('vote in progress')
+
+def is_plan_free():
+    
+    saved_date = os.environ.get('CURRENT_PLAN_DATE')
+    plan_date = datetime.datetime.strptime(saved_date,"%Y-%m-%d").date()
+
+    if plan_date < current_date:
+        check_onetime_plans()
+    else:
+        vote_result()
+
+def send_confirmation():
+    #Sends plan confirmation message
+    print('confirmation sent!')
+
+def send_cancelation():
+    #Sends plan cancelation message
+    print('cancelation sent!')
 
 def check_onetime_plans():
     #Clean the past plans
@@ -26,10 +61,10 @@ def check_onetime_plans():
         closest_date = datetime.datetime(5000,12,30,0,0,0).date()
         
         #Plan required info
-        plan_date = None
-        plan_time = None
-        plan_location = None
-        plan_note = None
+        plan_date:datetime
+        plan_time:datetime
+        plan_location:str
+        plan_note:str
 
         #Calculates the closest upcoming event
         for num, event in enumerate(csvfile):
@@ -55,7 +90,6 @@ def check_onetime_plans():
         #Plan is close enought to invite members to
         plan = plan_template.plan(plan_date,plan_time,plan_location,plan_note)
         send_plan(plan)
-
  
 def generate_random_plan():
     # Access the csv files
@@ -65,7 +99,7 @@ def generate_random_plan():
     random_num = random.randint(0,len(dict_list))
 
     # Defining some needed variables
-    offset_date = current_date + datetime.timedelta(days=random.randint(1,3))
+    offset_date = current_date + datetime.timedelta(days=random.randint(0,2))
     plan_time = datetime.time(random.randint(17,20),00)
     plan_location = dict_list[random_num]['location']
     plan_note = dict_list[random_num]['note']
@@ -74,11 +108,10 @@ def generate_random_plan():
     plan = plan_template.plan(offset_date,plan_time,plan_location,plan_note)
 
     # Sending an email with teh generated plan
+
     send_plan(plan)
 
 def send_plan(plan:plan_template.plan):
-    # Load the local .env file to be used
-    load_dotenv('.env')
 
     # Defining some variables
     sender_email = str(os.environ.get('SENDER_EMAIL'))
@@ -112,7 +145,13 @@ def send_plan(plan:plan_template.plan):
         server.login(sender_email, email_passkey)
         # Send email
         server.sendmail(sender_email,recipient_emails,mail_str.encode('utf-8'))
-    
+
+    #Saves the Details of the current plan
+    dotenv.set_key('.env','CURRENT_PLAN_LOCATION',plan.location,'never')
+    dotenv.set_key('.env','CURRENT_PLAN_DATE',str(plan.date),'never')
+    dotenv.set_key('.env','CURRENT_PLAN_TIME',str(plan.time),'never')
+    dotenv.set_key('.env','CURRENT_PLAN_NOTE',plan.note,'never')
     print("Mail sent!")
 
-check_onetime_plans()
+#is_plan_free()
+vote_result()

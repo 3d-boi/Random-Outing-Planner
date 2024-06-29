@@ -1,6 +1,11 @@
 from flask import Flask, render_template, request
+import dotenv
+import os
 
 app = Flask(__name__)
+dotenv.load_dotenv('.env')
+yes_votes = eval(os.environ.get('YES_VOTES'))
+no_votes = eval(os.environ.get('NO_VOTES'))
 
 @app.route('/')
 def home():
@@ -9,11 +14,13 @@ def home():
 @app.route('/voteyes')
 def voteyes():
     print('someone voted Yes')
+    dotenv.set_key('.env','YES_VOTES',yes_votes + 1,'never')
     return render_template('vote.html')
 
 @app.route('/voteno')
 def voteno():
     print('someone voted No')
+    dotenv.set_key('.env','NO_VOTES',no_votes + 1,'never')
     return render_template('vote.html')
 
 @app.route('/suggest', methods = ["GET","POST"])
