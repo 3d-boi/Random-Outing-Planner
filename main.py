@@ -6,24 +6,56 @@ import datetime
 import random
 import plan_template
 import csv
+import csvcleaner
 
 # A Temporary list of all the locations available
-locations = ["The School", "The Garden", "The GYM"]
+#locations = ["The School", "The Garden", "The GYM"]
 
 # Recording the current time and date in 2 variables
 current_date = datetime.datetime.now().date()
 current_time = datetime.datetime.now().time()
+min_future_date = current_date + datetime.timedelta(3)
 
 def check_onetime_plans():
+    #Clean the past plans
+    csvcleaner.clean('Flask Web App/onetime.csv')
+
+    #Cycle throught the remaining plans
     with open('Flask Web App/onetime.csv', 'r') as plans_file:
         csvfile = csv.DictReader(plans_file)
-        for event in csvfile:
+        closest_date = datetime.datetime(5000,12,30,0,0,0).date()
+        
+        #Plan required info
+        plan_date = None
+        plan_time = None
+        plan_location = None
+        plan_note = None
+
+        #Calculates the closest upcoming event
+        for num, event in enumerate(csvfile):
             event_date = datetime.datetime.strptime(event['date'],"%Y-%m-%d").date()
-            if(current_date >= event_date):
-                print(f'{event_date} is a past date.')
+            if event_date < closest_date:
+                closest_date = event_date
+                event_index = num
+                plan_date = datetime.datetime.strptime(event['date'],"%Y-%m-%d").date()
+                plan_time = datetime.datetime.strptime(event['time'],"%H:%M").time()
+                plan_location = event['location']
+                plan_note = event['note']
             else:
-                print(f'{event_date} is a future date.')
-        #dict_list = list(csvfile)
+                continue
+            
+
+        
+    
+    #Sees if the closest upcoming event is far enought to fit another plan in-between it an right now
+    if closest_date > min_future_date:
+        #Plan is far enough to make another one in the meantime
+        generate_random_plan()
+    else:
+        #Plan is close enought to invite members to
+        plan = plan_template.plan(plan_date,plan_time,plan_location,plan_note)
+        send_plan(plan)
+
  
 def generate_random_plan():
     # Access the csv files
@@ -83,5 +115,4 @@ def send_plan(plan:plan_template.plan):
     
     print("Mail sent!")
 
-generate_random_plan()
-#check_onetime_plans()
+check_onetime_plans()
